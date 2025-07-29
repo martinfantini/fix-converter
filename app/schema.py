@@ -27,26 +27,6 @@ class Field_Value:
     enum: str = field(default_factory=str)
     description: str = field(default_factory=str)
 
-#   <group name="NoQuoteEntries">
-#      <field name="Symbol"/>
-#      <field name="SecurityDesc"/>
-#   </group>
-# or
-#   <group name="NoRiskLimitTypes" required="Y">
-#       <field name="RiskLimitType" required="Y" />
-#   </group>
-@dataclass(frozen=True)
-class MessageGroup:
-    name: str = field(default_factory=str)
-    required: bool = field(default=False)
-    field_by_name: Dict[str, MessageField] = field(default_factory=dict)
-
-#    <field name="CheckSum" required="Y"/>
-@dataclass(frozen=True)
-class MessageField:
-    name: str = field(default_factory=str)
-    required: Optional[bool] = field(default=False)
-
 #    <component name="QuotEntryGrp">
 #      <field name="SecurityDesc"/>
 #      <group name="NoQuoteEntries">
@@ -70,9 +50,35 @@ class MessageField:
 #       </group>
 #   </component>
 @dataclass(frozen=True)
-class MessageComponent:
+class Component:
     name: str = field(default_factory=str)
     field_group_by_name: Dict[str, Union[MessageField, MessageGroup]] = field(default_factory=dict)
+
+#   <group name="NoQuoteEntries">
+#      <field name="Symbol"/>
+#      <field name="SecurityDesc"/>
+#   </group>
+# or
+#   <group name="NoRiskLimitTypes" required="Y">
+#       <field name="RiskLimitType" required="Y" />
+#   </group>
+@dataclass(frozen=True)
+class MessageGroup:
+    name: str = field(default_factory=str)
+    required: bool = field(default=False)
+    field_by_name: Dict[str, Union[MessageField, MessageComponent, MessageGroup]] = field(default_factory=dict)
+
+#    <field name="CheckSum" required="Y"/>
+@dataclass(frozen=True)
+class MessageField:
+    name: str = field(default_factory=str)
+    required: Optional[bool] = field(default=False)
+
+# <component name="Parties" required="Y" />
+@dataclass(frozen=True)
+class MessageComponent:
+    name: str = field(default_factory=str)
+    required: Optional[bool] = field(default=False)
 
 #        <message name="UserPartyRiskLimitsRequest" msgtype="UCL" msgcat="app">
 #        	<component name="Parties" required="Y" />
@@ -92,7 +98,6 @@ class Message:
 #  <trailer>
 #    <field name="CheckSum" required="Y"/>
 #  </trailer>
-
 @dataclass(frozen=True)
 class Trailer:
     fields: Dict[str, Union[MessageField, MessageComponent, MessageGroup]] = field(default_factory=dict)
@@ -141,14 +146,14 @@ class Header:
 #or 
 #
 #    <fix major="4" minor="2">
-
+@dataclass(frozen=True)
 class Schema:
     major_version: int = field(default=0)
     minor_version: int = field(default=0)
     copyright: Optional[str] = field(default=None)
     version: Optional[str] = field(default=None)
     fields: Dict[str, Field] = field(default_factory=dict)
-    components: Dict[str, MessageComponent] = field(default_factory=dict)
+    components: Dict[str, Component] = field(default_factory=dict)
     message: Dict[str, Message] = field(default_factory=dict)
-    header: Header = field()
-    trailer: Trailer = field()
+    header: Header = field(default=None)
+    trailer: Trailer = field(default=None)

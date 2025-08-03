@@ -22,7 +22,7 @@ def main() -> None:
         Generator = getattr(module, 'Generator')
         schema = Parser.from_file(args.schema).get_schema()
         if len(args.package) != 0:
-            schema.name = args.package
+            schema.package = args.package
         generator = Generator(args.destination)
         generator.generate(schema)
     except Exception as e:

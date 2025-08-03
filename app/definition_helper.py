@@ -8,6 +8,7 @@ from typing import Dict
 from schema import *
 from definition import *
 from helpers import *
+from typing import Dict, Union
 
 class DefinitionHelper:
 
@@ -25,6 +26,7 @@ class DefinitionHelper:
         "FLOAT": 'float',
         "LENGTH": 'int',
         "DATA": 'string',
+        "PADDEDSEQNUM": 'int',
     })
 
     def get_value_def(self, parsed_value: Field_Value) -> ValueDefinition:
@@ -131,83 +133,37 @@ class DefinitionHelper:
         return messages_dict
 
     def get_message_definition(self, parsed_message: Message, field_parsed: Dict[str, Field], component_definition: Dict[str, ComponentValue]) -> MessageDefinition:
-        fields_dict = UniqueKeysDict()
-        for field_message in parsed_message.fields.values():
-            if isinstance(field_message, MessageField):
-                result_field_value = self.get_field_value_from_message_field(field_message, field_parsed)
-                fields_dict[field_parsed[result_field_value.name].number] = result_field_value
-            elif isinstance(field_message, MessageGroup):
-                result_group_value = self.get_group_value_from_message_group(field_message)
-                if field_parsed[result_group_value.name] == None:
-                    raise Exception(f'Internal Error: undefined field "{result_group_value.name}"')
-                fields_dict[field_parsed[result_group_value.name].number] = GroupValue(
-                    name = result_group_value.name,
-                    required = result_group_value.required,
-                    required_group = result_group_value.required)
-            elif isinstance(field_message, MessageComponent):
-                result_component_value = self.get_fields_in_component(field_message, component_definition)
-                for element_in_component in result_component_value.values():
-                    if isinstance(element_in_component, FieldValue):
-                        fields_dict[field_parsed[element_in_component.name].number] = element_in_component
-                    elif isinstance(element_in_component, GroupValue):
-                        if field_parsed[element_in_component.name] == None:
-                            raise Exception(f'Internal Error: undefined field "{element_in_component.name}"')
-                        fields_dict[field_parsed[element_in_component.name].number] = GroupValue(
-                            name = element_in_component.name,
-                            required = element_in_component.required,
-                            required_group = field_message.required )
+        fields_dict = self.generate_field_group_values_from_field_component_group(parsed_message.fields, field_parsed, component_definition)
         return MessageDefinition(
             name = parsed_message.name,
             msg_type = parsed_message.msg_type,
             msg_category = parsed_message.msg_category,
             fields = fields_dict)
 
-    #def generate_group_definition(self, parsed_messages: Dict[str, Message], component_parsed: Dict[str, Component], field_parsed: Dict[str, Field]) -> Dict[str, GroupDefinition]:
-    
     def generate_header(self, header: Header, field_parsed: Dict[str, Field], component_definition: Dict[str, ComponentValue]) -> HeaderDefinition:
-        fields_dict = UniqueKeysDict()
-        for field_header in header.fields.values():
-            if isinstance(field_trailer, MessageField):
-                result_field_value = self.get_field_value_from_message_field(field_trailer, field_parsed)
-                fields_dict[field_parsed[result_field_value.name].number] = result_field_value
-            elif isinstance(field_trailer, MessageGroup):
-                result_group_value = self.get_group_value_from_message_group(field_trailer)
-                if field_parsed[result_group_value.name] == None:
-                    raise Exception(f'Internal Error: undefined field "{result_group_value.name}"')
-                fields_dict[field_parsed[result_group_value.name].number] = GroupValue(
-                    name = result_group_value.name,
-                    required = result_group_value.required,
-                    required_group = result_group_value.required)
-            elif isinstance(field_trailer, MessageComponent):
-                result_component_value = self.get_fields_in_component(field_trailer, component_definition)
-                for element_in_component in result_component_value.values():
-                    if isinstance(element_in_component, FieldValue):
-                        fields_dict[field_parsed[element_in_component.name].number] = element_in_component
-                    elif isinstance(element_in_component, GroupValue):
-                        if field_parsed[element_in_component.name] == None:
-                            raise Exception(f'Internal Error: undefined field "{element_in_component.name}"')
-                        fields_dict[field_parsed[element_in_component.name].number] = GroupValue(
-                            name = element_in_component.name,
-                            required = element_in_component.required,
-                            required_group = field_trailer.required )
-        return fields_dict
+        fields_dict = self.generate_field_group_values_from_field_component_group(header.fields, field_parsed, component_definition)
+        return HeaderDefinition(fields = fields_dict)
 
     def generate_trailer(self, trailer: Trailer, field_parsed: Dict[str, Field], component_definition: Dict[str, ComponentValue]) -> TrailerDefinition:
+        fields_dict = self.generate_field_group_values_from_field_component_group(trailer.fields, field_parsed, component_definition)
+        return TrailerDefinition(fields = fields_dict)
+
+    def generate_field_group_values_from_field_component_group(self, fields: Dict[str, Union[MessageField, MessageComponent, MessageGroup]], field_parsed: Dict[str, Field], component_definition: Dict[str, ComponentValue]) -> Dict[int, Union[FieldValue, GroupValue]]:
         fields_dict = UniqueKeysDict()
-        for field_trailer in trailer.fields.values():
-            if isinstance(field_trailer, MessageField):
-                result_field_value = self.get_field_value_from_message_field(field_trailer, field_parsed)
+        for field_element in fields.values():
+            if isinstance(field_element, MessageField):
+                result_field_value = self.get_field_value_from_message_field(field_element, field_parsed)
                 fields_dict[field_parsed[result_field_value.name].number] = result_field_value
-            elif isinstance(field_trailer, MessageGroup):
-                result_group_value = self.get_group_value_from_message_group(field_trailer)
+            elif isinstance(field_element, MessageGroup):
+                result_group_value = self.get_group_value_from_message_group(field_element)
                 if field_parsed[result_group_value.name] == None:
                     raise Exception(f'Internal Error: undefined field "{result_group_value.name}"')
                 fields_dict[field_parsed[result_group_value.name].number] = GroupValue(
                     name = result_group_value.name,
                     required = result_group_value.required,
                     required_group = result_group_value.required)
-            elif isinstance(field_trailer, MessageComponent):
-                result_component_value = self.get_fields_in_component(field_trailer, component_definition)
+            elif isinstance(field_element, MessageComponent):
+                result_component_value = self.get_fields_in_component(field_element, component_definition)
                 for element_in_component in result_component_value.values():
                     if isinstance(element_in_component, FieldValue):
                         fields_dict[field_parsed[element_in_component.name].number] = element_in_component
@@ -217,5 +173,5 @@ class DefinitionHelper:
                         fields_dict[field_parsed[element_in_component.name].number] = GroupValue(
                             name = element_in_component.name,
                             required = element_in_component.required,
-                            required_group = field_trailer.required )
+                            required_group = field_element.required )
         return fields_dict

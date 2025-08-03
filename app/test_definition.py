@@ -246,3 +246,146 @@ class Testing_Definition(unittest.TestCase):
         message_OrderSingle = result_message_definition["OrderSingle"]
         self.assertEqual(message_OrderSingle.msg_type, "D")
         self.assertEqual(len(message_OrderSingle.fields), 2)
+
+    def test_generate_trailer(self):
+        xml_ref = '\
+<fix major="4" minor="2">\
+    <trailer>\
+        <field name="CheckSum" required="Y"/>\
+    </trailer>\
+    <components>\
+        <component name="PartyGrp">\
+            <group name="NoPartyIDs" required="Y">\
+                <field name="PartyID"/>\
+                <field name="PartyIDSource"/>\
+                <field name="PartyRole"/>\
+            </group>\
+        </component>\
+    </components>\
+    <fields>\
+        <field number="10" name="CheckSum" type="INT" />\
+        <field number="453" name="NoPartyIDs" type="NUMINGROUP" />\
+        <field number="448" name="PartyID" type="STRING" />\
+        <field number="447" name="PartyIDSource" type="CHAR">\
+            <value enum="D" description="PROPRIETARY_CODE"/>\
+            <value enum="P" description="SHORT_CODE"/>\
+        </field>\
+        <field number="452" name="PartyRole" type="INT">\
+            <value enum="1" description="EXECUTING_FIRM"/>\
+            <value enum="11" description="ORDER_ORIGINATION_TRADER"/>\
+            <value enum="12" description="EXECUTING_TRADER" />\
+            <value enum="122" description="INVESTMENT_DECISION_MAKER"/>\
+            <value enum="3" description="CLIENT_ID"/>\
+            <value enum="38" description="POSITION_ACCOUNT"/>\
+            <value enum="4" description="CLEARING_FIRM"/>\
+            <value enum="44" description="ORDER_ENTRY_OPERATOR_ID"/>\
+            <value enum="5" description="INVESTOR_ID" />\
+            <value enum="7" description="ENTERING_FIRM" />\
+        </field>\
+    </fields>\
+</fix>\
+'
+
+        parser_result = Parser.from_string(xml_ref)
+        fields_dict = parser_result.get_fields()
+        components_dict = parser_result.get_components(fields_dict)
+        trailer = parser_result.get_trailer(fields_dict, components_dict)
+
+        helper = DefinitionHelper()
+        result_component_definition = helper.generate_component_definition(components_dict, fields_dict)
+        result_message_definition = helper.generate_trailer(trailer, fields_dict, result_component_definition)
+        self.assertEqual(len(result_message_definition.fields), 1)
+
+        trailer_CheckSum = result_message_definition.fields['10']
+        self.assertEqual(trailer_CheckSum.name, "CheckSum")
+        self.assertEqual(trailer_CheckSum.required, True)
+
+    def test_generate_header(self):
+        xml_ref = '\
+<fix major="4" minor="2">\
+    <header>\
+        <field name="BeginString"/>\
+        <field name="BodyLength"/>\
+        <field name="MsgType" required="Y"/>\
+        <field name="SenderCompID"/>\
+        <field name="TargetCompID"/>\
+        <field name="MsgSeqNum" required="Y"/>\
+    </header>\
+    <components>\
+        <component name="PartyGrp">\
+            <group name="NoPartyIDs" required="Y">\
+                <field name="PartyID"/>\
+                <field name="PartyIDSource"/>\
+                <field name="PartyRole"/>\
+            </group>\
+        </component>\
+    </components>\
+    <fields>\
+        <field number="453" name="NoPartyIDs" type="NUMINGROUP" />\
+        <field number="448" name="PartyID" type="STRING" />\
+        <field number="447" name="PartyIDSource" type="CHAR">\
+            <value enum="D" description="PROPRIETARY_CODE"/>\
+            <value enum="P" description="SHORT_CODE"/>\
+        </field>\
+        <field number="452" name="PartyRole" type="INT">\
+            <value enum="1" description="EXECUTING_FIRM"/>\
+            <value enum="11" description="ORDER_ORIGINATION_TRADER"/>\
+            <value enum="12" description="EXECUTING_TRADER" />\
+            <value enum="122" description="INVESTMENT_DECISION_MAKER"/>\
+            <value enum="3" description="CLIENT_ID"/>\
+            <value enum="38" description="POSITION_ACCOUNT"/>\
+            <value enum="4" description="CLEARING_FIRM"/>\
+            <value enum="44" description="ORDER_ENTRY_OPERATOR_ID"/>\
+            <value enum="5" description="INVESTOR_ID" />\
+            <value enum="7" description="ENTERING_FIRM" />\
+        </field>\
+        <field number="8" name="BeginString" type="STRING"/>\
+        <field number="9" name="BodyLength" type="LENGTH" />\
+        <field number="35" name="MsgType" type="STRING">\
+            <value enum="0" description="HEARTBEAT"/>\
+            <value enum="1" description="TEST_REQUEST"/>\
+            <value enum="2" description="RESEND_REQUEST"/>\
+            <value enum="3" description="SESSION_REJECT"/>\
+            <value enum="4" description="SEQUENCE_RESET"/>\
+            <value enum="5" description="LOGOUT"/>\
+            <value enum="8" description="EXECUTION_REPORT"/>\
+            <value enum="9" description="ORDER_CANCEL_REJECT"/>\
+            <value enum="A" description="LOGON"/>\
+            <value enum="D" description="NEW_ORDER_SINGLE"/>\
+            <value enum="AB" description="NEW_ORDER_MULTILEG"/>\
+            <value enum="F" description="ORDER_CANCEL_REQUEST"/>\
+            <value enum="G" description="ORDER_CANCEL_REPLACE_REQUEST"/>\
+            <value enum="AC" description="MULTILEG_ORDER_CANCEL_REPLACE_REQUEST"/>\
+            <value enum="H" description="ORDER_STATUS_REQUEST"/>\
+            <value enum="R" description="QUOTE_REQUEST"/>\
+            <value enum="Z" description="QUOTE_CANCEL"/>\
+            <value enum="b" description="QUOTE_ACKNOWLEDGEMENT"/>\
+            <value enum="c" description="SECURITY_DEFINITION_REQUEST"/>\
+            <value enum="d" description="SECURITY_DEFINITION"/>\
+            <value enum="i" description="MASS_QUOTE"/>\
+            <value enum="j" description="BUSINESS_REJECT"/>\
+            <value enum="s" description="NEW_ORDER_CROSS"/>\
+        </field>\
+        <field number="49" name="SenderCompID" type="STRING"/>\
+        <field number="56" name="TargetCompID" type="STRING"/>\
+        <field number="34" name="MsgSeqNum" type="PADDEDSEQNUM"/>\
+    </fields>\
+</fix>\
+'
+        parser_result = Parser.from_string(xml_ref)
+        fields_dict = parser_result.get_fields()
+        components_dict = parser_result.get_components(fields_dict)
+        header = parser_result.get_header(fields_dict, components_dict)
+
+        helper = DefinitionHelper()
+        result_component_definition = helper.generate_component_definition(components_dict, fields_dict)
+        result_message_definition = helper.generate_header(header, fields_dict, result_component_definition)
+        self.assertEqual(len(result_message_definition.fields), 6)
+
+        trailer_MsgType = result_message_definition.fields['35']
+        self.assertEqual(trailer_MsgType.name, "MsgType")
+        self.assertEqual(trailer_MsgType.required, True)
+
+        trailer_BeginString = result_message_definition.fields['8']
+        self.assertEqual(trailer_BeginString.name, "BeginString")
+        self.assertEqual(trailer_BeginString.required, False)

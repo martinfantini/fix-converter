@@ -52,7 +52,7 @@ class Field_Value:
 @dataclass(frozen=True)
 class Component:
     name: str = field(default_factory=str)
-    field_group_by_name: Dict[str, Union[MessageField, MessageGroup]] = field(default_factory=dict)
+    field_group_by_name: Dict[str, Union[MessageField, MessageComponent, MessageGroup]] = field(default_factory=dict)
 
 #   <group name="NoQuoteEntries">
 #      <field name="Symbol"/>
@@ -148,9 +148,10 @@ class Header:
 #    <fix major="4" minor="2">
 @dataclass(frozen=True)
 class Schema:
-    major_version: int = field(default=0)
-    minor_version: int = field(default=0)
+    fix_minor_version: int = field(default=0)
+    fix_major_version: int = field(default=0)
     copyright: Optional[str] = field(default=None)
+    package: Optional[str] = field(default=None)
     version: Optional[str] = field(default=None)
     fields: Dict[str, Field] = field(default_factory=dict)
     components: Dict[str, Component] = field(default_factory=dict)

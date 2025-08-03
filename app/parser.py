@@ -4,15 +4,9 @@
 from __future__ import annotations
 import xml.etree.ElementTree as ET
 from typing import Optional, Dict, Union, Tuple
-from collections import UserDict
 from schema import *
 from xml_helper import *
-
-class UniqueKeysDict(UserDict):
-    def __setitem__(self, key, value):
-        if key in self.data:
-            raise Exception(f'duplicate key "{key}"')
-        self.data[key] = value
+from helpers import *
 
 class Parser:
 
@@ -136,7 +130,7 @@ class Parser:
                 child_field = self.parse_message_field(child, dict_fields)
                 field_group_by_name_dict[child_field.name] = child_field
             elif child.tag == 'component':
-                child_component  = self.parse_message_component(child, None)
+                child_component = self.parse_message_component(child, None)
                 field_group_by_name_dict[child_component.name] = child_component
             else:
                 raise Exception(f'Malformed XML: unsupported tag "{child.tag}" in the component definition')
@@ -171,7 +165,7 @@ class Parser:
         fields_dict = UniqueKeysDict()
         for child in node:
             if child.tag == 'group':
-                child_group = self.parse_message_group(child, dict_fields)
+                child_group = self.parse_message_group(child, dict_fields, dict_components)
                 fields_dict[child_group.name] = child_group
             elif child.tag == 'field':
                 child_field = self.parse_message_field(child, dict_fields)
@@ -302,8 +296,8 @@ class Parser:
         trailer_def = self.get_trailer(fields_dict, components_dict)
 
         return Schema(
-            major_version = major_version_int,
-            minor_version = minor_version_int,
+            fix_major_version = major_version_int,
+            fix_minor_version = minor_version_int,
             copyright = cpyrght_str,
             version = vrsn_str,
             fields = fields_dict,

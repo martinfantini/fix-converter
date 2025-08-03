@@ -1,6 +1,7 @@
 # Copyright (C) 2025 Roberto Martin Fantini <martin.fantini@gmail.com>
 # This file may be distributed under the terms of the GNU GPLv3 license
 
+from definition import GroupValue
 from typing import Required
 from schema import MessageComponent
 from definition import FieldDefinition
@@ -166,12 +167,60 @@ class DefinitionHelper:
                 result_component_value = self.get_fields_in_component(field_element, component_definition)
                 for element_in_component in result_component_value.values():
                     if isinstance(element_in_component, FieldValue):
-                        fields_dict[field_parsed[element_in_component.name].number] = element_in_component
+                        fields_dict[field_parsed[element_in_component.name].number] = FieldValue(name = element_in_component.name, required = field_element.required)
                     elif isinstance(element_in_component, GroupValue):
                         if field_parsed[element_in_component.name] == None:
                             raise Exception(f'Internal Error: undefined field "{element_in_component.name}"')
                         fields_dict[field_parsed[element_in_component.name].number] = GroupValue(
                             name = element_in_component.name,
                             required = element_in_component.required,
-                            required_group = field_element.required )
+                            required_group = field_element.required)
         return fields_dict
+
+    def get_group_definition_from_message_group(self, message_group: MessageGroup, field_parsed: Dict[str, Field], component_definition: Dict[str, ComponentValue]) -> GroupDefinition:
+        number_element_field_field_value = self.get_field_value(message_group.name, message_group.required, field_parsed)
+        fields_in_group = self.generate_field_group_values_from_field_component_group(message_group.field_by_name, field_parsed, component_definition)
+        start_value = list(fields_in_group.values())[0]
+        if isinstance(start_value, FieldValue):
+            start_group_field_field_value = start_value
+        else:
+            raise Exception(f'Internal Error: field "{start_value.name}" has to be Field')
+        fields_in_group_by_number_by_number = UniqueKeysDict()
+        for field_element in fields_in_group.values():
+            fields_in_group_by_number_by_number[field_parsed[field_element.name].number] = field_element
+            result_group_definition = GroupDefinition(
+                    name = message_group.name,
+                    number_element_field = number_element_field_field_value,
+                    start_group_field = start_group_field_field_value,
+                    fields = fields_in_group_by_number_by_number)
+        return result_group_definition
+
+    def get_group_definition_from_component(self, parsed_component: Component, field_parsed: Dict[str, Field], component_definition: Dict[str, ComponentValue]) -> GroupDefinition:
+        ''' OBSERVATION: for the case of the components, there have ONLY one group per component, for the case of the more than one it is necessary define a component '''
+        result_group_definition = None
+        for component_element in parsed_component.field_group_by_name.values():
+            if isinstance(component_element, MessageGroup):
+                result_group_definition = self.get_group_definition_from_message_group(component_element, field_parsed, component_definition)
+        return result_group_definition
+
+    def get_group_definition_from_message(self, parsed_message: Message, field_parsed: Dict[str, Field], component_definition: Dict[str, ComponentValue]) -> GroupDefinition:
+        ''' OBSERVATION: for the case of the message, there have ONLY one group per component, for the case of the more than one it is necessary define a component '''
+        result_group_definition = None
+        for message_element in parsed_message.fields.values():
+            if isinstance(message_element, MessageGroup):
+                result_group_definition = self.get_group_definition_from_message_group(message_element, field_parsed, component_definition)
+        return result_group_definition
+
+    def generate_group_definition(self, component_parsed: Dict[str, Component], parsed_messages: Dict[str, Message], field_parsed: Dict[str, Field], component_definition: Dict[str, ComponentValue]) -> Dict[str, GroupDefinition]:
+        group_dict =  UniqueKeysDict()
+        for component_element in component_parsed.values():
+            result_group_definition = self.get_group_definition_from_component(component_element, field_parsed, component_definition)
+            if result_group_definition == None:
+                continue
+            group_dict[result_group_definition.name] = result_group_definition
+        for message_element in parsed_messages.values():
+            result_group_definition = self.get_group_definition_from_message(message_element, field_parsed, component_definition)
+            if result_group_definition == None:
+                continue
+            group_dict[result_group_definition.name] = result_group_definition
+        return group_dict

@@ -389,3 +389,99 @@ class Testing_Definition(unittest.TestCase):
         trailer_BeginString = result_message_definition.fields['8']
         self.assertEqual(trailer_BeginString.name, "BeginString")
         self.assertEqual(trailer_BeginString.required, False)
+
+    def test_generate_group_definition_from_components(self):
+        xml_ref = '\
+<fix major="4" minor="2">\
+    <messages>\
+        <message name="Logon" msgtype="A" msgcat="admin">\
+            <field name="EncryptMethod" required="Y" />\
+            <field name="HeartBtInt" required="Y" />\
+            <field name="Password" required="N" />\
+        </message>\
+    </messages>\
+    <components>\
+        <component name="LegFillsGrp">\
+            <group name="LegNoFills">\
+                <field name="LegFillExecID"/>\
+                <field name="LegFillPx"/>\
+            </group>\
+        </component>\
+        <component name="ValueChecksGrp">\
+            <group name="NoValueChecks" required="Y">\
+                <field name="ValueCheckType" required="Y" />\
+                <field name="ValueCheckAction" required="Y" />\
+            </group>\
+        </component>\
+        <component name="Parties">\
+            <group name="NoPartyIDs" required="Y">\
+                <field name="PartyID" required="Y" />\
+                <field name="PartyIDSource" required="Y" />\
+            </group>\
+        </component>\
+        <component name="TrdCapRptSideGrp">\
+            <group name="NoSides" required="Y">\
+                <field name="Side" required="Y" />\
+                <field name="SideTradeReportID" required="N" />\
+                <component name="Parties" required="N" />\
+                <field name="SideTradeID" required="N" />\
+            </group>\
+        </component>\
+        <component name="Instrument">\
+            <field name="Symbol" required="Y" />\
+            <field name="SecurityID" required="N" />\
+            <field name="SecurityIDSource" required="N" />\
+        </component>\
+    </components>\
+        <fields>\
+            <field number="98" name="EncryptMethod" type="INT">\
+                <value enum="0" description="NONEOTHER"/>\
+            </field>\
+            <field number="108" name="HeartBtInt" type="INT"/>\
+            <field number="554" name="Password" type="STRING"/>\
+            <field number="55" name="Symbol" type="STRING"/>\
+            <field number="48" name="SecurityID" type="STRING"/>\
+            <field number="22" name="SecurityIDSource" type="STRING">\
+                <value enum="M" description="MARKETPLACE_ASSIGNED_IDENTIFIER"/>\
+            </field>\
+            <field number="16120" name="LegNoFills" type="NUMINGROUP"/>\
+            <field number="16121" name="LegFillExecID" type="STRING"/>\
+            <field number="16122" name="LegFillPx" type="PRICE"/>\
+            <field number="1868" name="NoValueChecks" type="NUMINGROUP"/>\
+            <field number="1869" name="ValueCheckType" type="INT">\
+                <value enum="1" description="PRICE_CHECK"/>\
+                <value enum="2" description="NOTIONAL_VALUE_CHECK"/>\
+                <value enum="3" description="QUANTITY_CHECK"/>\
+            </field>\
+            <field number="1870" name="ValueCheckAction" type="INT">\
+                <value enum="0" description="DO_NOT_CHECK"/>\
+                <value enum="1" description="CHECK"/>\
+            </field>\
+            <field number="453" name="NoPartyIDs" type="NUMINGROUP"/>\
+            <field number="448" name="PartyID" type="STRING"/>\
+            <field number="447" name="PartyIDSource" type="CHAR">\
+                <value enum="D" description="PROPRIETARYCUSTOMCODE"/>\
+                <value enum="H" description="KASSENVEREIN_NUMBER"/>\
+                <value enum="P" description="SHORT_CODE_IDENTIFIER"/>\
+            </field>\
+            <field number="552" name="NoSides" type="NUMINGROUP">\
+                <value enum="2" description="BOTH_SIDES"/>\
+            </field>\
+            <field number="54" name="Side" type="CHAR">\
+                <value enum="1" description="BUY"/>\
+                <value enum="2" description="SELL"/>\
+            </field>\
+            <field number="1005" name="SideTradeReportID" type="INT"/>\
+            <field number="1506" name="SideTradeID" type="INT"/>\
+        </fields>\
+</fix>\
+'
+        parser_result = Parser.from_string(xml_ref)
+        fields_dict = parser_result.get_fields()
+        components_dict = parser_result.get_components(fields_dict)
+        messages_dict = parser_result.get_messages(fields_dict, components_dict)
+
+        helper = DefinitionHelper()
+        result_component_definition = helper.generate_component_definition(components_dict, fields_dict)
+        result_group_definition = helper.generate_group_definition(components_dict, messages_dict, fields_dict, result_component_definition)
+        self.assertEqual(len(result_group_definition), 4)

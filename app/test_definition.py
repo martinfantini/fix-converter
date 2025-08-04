@@ -414,6 +414,7 @@ class Testing_Definition(unittest.TestCase):
             </group>\
         </component>\
         <component name="Parties">\
+            <field name="Symbol" required="Y" />\
             <group name="NoPartyIDs" required="Y">\
                 <field name="PartyID" required="Y" />\
                 <field name="PartyIDSource" required="Y" />\
@@ -485,3 +486,6 @@ class Testing_Definition(unittest.TestCase):
         result_component_definition = helper.generate_component_definition(components_dict, fields_dict)
         result_group_definition = helper.generate_group_definition(components_dict, messages_dict, fields_dict, result_component_definition)
         self.assertEqual(len(result_group_definition), 4)
+
+        # Add more checks for the group definition
+        # print(result_group_definition)

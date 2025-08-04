@@ -224,3 +224,21 @@ class DefinitionHelper:
                 continue
             group_dict[result_group_definition.name] = result_group_definition
         return group_dict
+
+    def generate_schema_definition_from_schema_parser(self, schema_parser: Schema) -> SchemaDefinition:
+        fields_def = self.generate_fields_definition(schema_parser.fields)
+        component_def = self.generate_component_definition(schema_parser.components, schema_parser.fields)
+        groups_def = self.generate_group_definition(schema_parser.components, schema_parser.message, schema_parser.fields, component_def)
+        message_def = self.generate_message_definition(schema_parser.message, schema_parser.fields, component_def)
+        header_def = self.generate_header(schema_parser.header, schema_parser.fields, component_def)
+        trailer_def = self.generate_trailer(schema_parser.trailer, schema_parser.fields, component_def)
+        return SchemaDefinition(
+            fields = fields_def,
+            groups = groups_def,
+            messages = message_def,
+            header = header_def,
+            trailer = trailer_def,
+            fix_minor_version = schema_parser.fix_minor_version,
+            fix_major_version = schema_parser.fix_major_version,
+            package = schema_parser.package,
+            version = schema_parser.version )

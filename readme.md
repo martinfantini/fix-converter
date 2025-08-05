@@ -26,7 +26,8 @@ component_group:
 # TODO
 
 - [ ] tests
-- [ ] ci integration
+- [x] ci integration on push and pull
+- [ ] ci integration advance
 - [ ] cmake integration
 - [ ] rust support
 - [ ] (cppng) from/to json serialization

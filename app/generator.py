@@ -1,156 +1,155 @@
 # Copyright (C) 2025 Roberto Martin Fantini <martin.fantini@gmail.com>
 # This file may be distributed under the terms of the GNU GPLv3 license
 
-from __future__ import annotations
-
+from definition import GroupDefinition
+from definition import ValueDefinition
+from definition import FieldDefinition
+from definition import *
 from abc import ABC, abstractmethod
-from dataclasses import dataclass, field, asdict
-from typing import Optional
-from schema import *
-from collections import UserDict
 
 class GeneratorBase(ABC):
     @abstractmethod
     def _generate_impl(self, schema: dict) -> None:
         pass
 
-    def generate(self, schema: Schema) -> None:
+    def generate(self, schema_definition: SchemaDefinition) -> None:
         ir = {}
-        ir['package'] = schema.name
-        ir['version'] = schema.name
-        ir['fix_version_major'] = schema.version
-        ir['fix_version_minor'] = schema.version
+        ir['package'] = schema_definition.package
+        ir['version'] = schema_definition.version
+        ir['fix_version_major'] = str(schema_definition.fix_major_version)
+        ir['fix_version_minor'] = str(schema_definition.fix_minor_version)
 
         # field definition
         ir['fields'] = []
-        for member_or_group in schema.groups.values():
-            ir['groups'].append(GeneratorBase.make_group_definition(member_or_group))
+        for field_definition in schema_definition.fields.values():
+            ir['fields'].append(GeneratorBase.make_field_definition(field_definition))
 
         # group definition
         ir['groups'] = []
-        for member_or_group in schema.groups.values():
-            ir['groups'].append(GeneratorBase.make_group_definition(member_or_group))
+        for group_definition in schema_definition.groups.values():
+            ir['groups'].append(GeneratorBase.make_group_definition(group_definition, schema_definition.fields))
 
-        # messages definition
+        # header definition
         ir['header'] = []
+        if schema_definition.header != None:
+            ir['header'].append(GeneratorBase.make_header_definition(schema_definition.header, schema_definition.fields))
 
+        # trailer definition
         ir['trailer'] = []
+        if schema_definition.trailer != None:
+            ir['trailer'].append(GeneratorBase.make_trailer_definition(schema_definition.trailer, schema_definition.fields))
 
         # messages definition
         ir['messages'] = []
-        for message_application in schema.application_messages.values():
-            ir['messages'].append(GeneratorBase.make_message_definition(message_application))
+        for message_definition in schema_definition.messages.values():
+            ir['messages'].append(GeneratorBase.make_message_definition(message_definition, schema_definition.fields))
 
         self._generate_impl(ir)
 
     @staticmethod
-    def make_data_definition(data_type: DataType) -> dict:
+    def make_field_definition(field_definition: FieldDefinition) -> dict:
+        if len(field_definition.values) == 1 and field_definition.is_enum == True:
+            token_str = 'const'
+        elif len(field_definition.values) > 1 and field_definition.is_enum == True:
+            token_str = 'enum'
+        elif field_definition.is_enum == False:
+            token_str = 'data'
+        else:
+            raise Exception(f'Internal Error: wrong defined field definition "{field_definition.name}", number of values "{len(field_definition.values)}" and is_enum flag {str(field_definition.is_enum)}')
+
+        values_dict = []
+        for value_definition in field_definition.values.values():
+            values_dict.append(GeneratorBase.make_values_definition(value_definition))
+            
         return {
-            'token': 'data',
-            'name': data_type.name,
-            'type': data_type.basic_type,
-            'numeric_id': data_type.numeric_id,
-            'size': data_type.primitive_size,
-            'description': data_type.description,
-            'min_value': data_type.min_value,
-            'max_value': data_type.max_value,
-            'range': data_type.range,
-            'no_value': data_type.no_value,
+            'token': token_str,
+            'name': field_definition.name,
+            'number': field_definition.number,
+            'type': field_definition.type,
+            'primitive_type': field_definition.primitive_type,
+            'values': values_dict
         }
 
     @staticmethod
-    def make_enum_definition(data_type: DataType) -> dict:
-        valid_values = []
-        if data_type.has_valid_values:
-            for enum_element in data_type.valid_value_by_name.values():
-                valid_values.append({
-                    'name', enum_element.name,
-                    'value', enum_element.value,
-                    'description', enum_element.description,
-                })
-
+    def make_values_definition(value_definition: ValueDefinition) -> dict:
         return {
-            'token': 'enum',
-            'name': data_type.name,
-            'type': data_type.basic_type,
-            'numeric_id': data_type.numeric_id,
-            'size': data_type.primitive_size,
-            'description': data_type.description,
-            'min_value': data_type.min_value,
-            'max_value': data_type.max_value,
-            'range': data_type.range,
-            'no_value': data_type.no_value,
-            'valid_values': valid_values,
+            'name' : value_definition.description,
+            'value' : value_definition.value
         }
+        
+    @staticmethod
+    def generate_fields_list(fields_definition_dict: Dict[int, Union[FieldValue, GroupValue]], fields_definition: Dict[str, FieldDefinition]):
+        fields_list  = []
+        sorted_dictionary = sorted(fields_definition_dict.items(), key=lambda x: str(x[0]))
+        for field in sorted_dictionary:
+            if isinstance(field[1], GroupValue):
+                fields_list.append(GeneratorBase.make_group_definition_in_group(field[1], field[0], fields_definition))
+            elif isinstance(field[1], FieldValue):
+                fields_list.append(GeneratorBase.make_field_definition_in_group(field[1], field[0], fields_definition))
+        return fields_list
 
     @staticmethod
-    def make_group_definition(group_dinition: ApplicationMessage_Group):
-        members = []
-        offset_in_group = 0
-        for member_of_group in group_dinition.members.values():
-            members.append({
-                'token': 'member',
-                'name': member_of_group.name,
-                'hiden': member_of_group.hidden,
-                'offset_in_group': offset_in_group,
-                'usage': str(member_of_group.usage),
-                'cardinality': member_of_group.cardinality,
-            })
-            offset_in_group += member_of_group.primitive_size
-        return{
+    def make_group_definition(group_definition: GroupDefinition, fields_definition: Dict[str, FieldDefinition] ) -> dict:
+        number_of_elements_field = fields_definition[group_definition.number_element_field.name]
+        if number_of_elements_field == None:
+            raise Exception(f'Internal Error: field "{number_of_elements_field.name}" not defined')
+        start_group_field = fields_definition[group_definition.start_group_field.name]
+        if start_group_field == None:
+            raise Exception(f'Internal Error: field "{start_group_field.name}" not defined')
+
+        return {
             'token': 'group',
-            'name': group_dinition.name,
-            'group_name': group_dinition.group_type,
-            'cardinality': group_dinition.cardinality,
-            'counter':  group_dinition.counter,
-            'group_size': group_dinition.primitive_size,
-            'members': members,
+            'name': group_definition.name,
+            'number_of_elements': group_definition.number_element_field.name,
+            'number_of_elements_id': str(number_of_elements_field.number),
+            'start_group_field': start_group_field.name,
+            'start_group_field_id': str(start_group_field.number),
+            'fields': GeneratorBase.generate_fields_list(group_definition.fields, fields_definition),
         }
 
     @staticmethod
-    def make_message_definition(application_message: ApplicationMessage) -> dict:
-        members = []
-        for member_or_group in application_message.members_or_groups:
-            if isinstance(member_or_group, ApplicationMessage_Member):
-                entry = GeneratorBase.make_aplication_member_definition(member_or_group)
-            elif isinstance(member_or_group, ApplicationMessage_Group):
-                entry = GeneratorBase.make_aplication_group_definition(member_or_group)
-            members.append(entry)
+    def make_group_definition_in_group(group_definition: GroupValue, group_id: int, fields_definition: Dict[str, FieldDefinition]) -> dict:
+        if fields_definition[group_definition.name] == None:
+            raise Exception(f'Internal Error: field "{group_definition.name}" not defined')
 
+        return {
+            'token': 'group',
+            'name': group_definition.name,
+            'required': str(group_definition.required_group),
+            'id': group_id,
+        }
+
+    @staticmethod
+    def make_field_definition_in_group(field_definition: FieldValue, field_id: int, fields_definition: Dict[str, FieldDefinition]) -> dict:
+        if fields_definition[field_definition.name] == None:
+            raise Exception(f'Internal Error: field "{field_definition.name}" not defined')
+
+        return {
+            'token': 'field',
+            'name': field_definition.name,
+            'required': field_definition.required,
+            'id': field_id,
+        }
+
+    @staticmethod
+    def make_trailer_definition(trailer: TrailerDefinition, fields_definition: Dict[str, FieldDefinition]) -> dict:
+        return {
+            'token': 'trailer',
+            'fields': GeneratorBase.generate_fields_list(trailer.fields, fields_definition),
+        }
+
+    @staticmethod
+    def make_header_definition(header: HeaderDefinition, fields_definition: Dict[str, FieldDefinition]) -> dict:
+        return {
+            'token': 'header',
+            'fields': GeneratorBase.generate_fields_list(header.fields, fields_definition),
+        }
+
+    @staticmethod
+    def make_message_definition(message_definition: MessageDefinition, fields_definition: Dict[str, FieldDefinition]) -> dict:
         return {
             'token': 'message',
-            'name': application_message.name,
-            'numeric_id': application_message.numeric_id,
-            'message_size': application_message.primitive_size,
-            'members': members
-        }
-
-    @staticmethod
-    def make_aplication_member_definition(member: ApplicationMessage_Member):
-        constant_enum_value_bool = False
-        enum_value_int = None
-        if len(member.valid_value_by_name) == 1:
-            constant_enum_value_bool = True
-            enum_value_int = list(member.valid_value_by_name.values())[0].value
-
-        return{
-            'token': 'member',
-            'name': member.name,
-            'data_type_name': member.member_type,
-            'usage': str(member.usage),
-            'offset': member.offset,
-            'cardinality': member.cardinality,
-            'offset_base': member.offset_base,
-            'constant_enum_value': constant_enum_value_bool,
-            'value': enum_value_int,
-        }
-
-    @staticmethod
-    def make_aplication_group_definition(member: ApplicationMessage_Group):
-        return{
-            'token': 'group',
-            'name': member.name,
-            'group_name': member.group_type,
-            'cardinality': member.cardinality,
-            'counter':  member.counter,
+            'name': message_definition.name,
+            'type': message_definition.msg_type,
+            'fields': GeneratorBase.generate_fields_list(message_definition.fields, fields_definition),
         }

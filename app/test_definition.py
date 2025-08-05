@@ -23,8 +23,8 @@ class Testing_Definition(unittest.TestCase):
             field_type = "INT",
             value_by_description = [],
         )
-        helper = DefinitionHelper()
-        result = helper.get_field_def(field_value)
+
+        result = DefinitionHelper.get_field_def(field_value)
         self.assertEqual(result.name, "TestName")
         self.assertEqual(result.number, 1234)
         self.assertEqual(result.primitive_type, 'int')
@@ -41,8 +41,8 @@ class Testing_Definition(unittest.TestCase):
             field_type = "INT",
             value_by_description = value_desc_dict,
         )
-        helper = DefinitionHelper()
-        result = helper.get_field_def(field_value)
+
+        result= DefinitionHelper.get_field_def(field_value)
         self.assertEqual(result.name, "TestName")
         self.assertEqual(result.number, 1234)
         self.assertEqual(result.primitive_type, 'int')
@@ -51,8 +51,7 @@ class Testing_Definition(unittest.TestCase):
 
     def test_get_group_value_from_message_group(self):
         message_group = MessageGroup(name = "TestGroup", required = False)
-        helper = DefinitionHelper()
-        result = helper.get_group_value_from_message_group(message_group)
+        result = DefinitionHelper.get_group_value_from_message_group(message_group)
         self.assertEqual(result.name, "TestGroup")
         self.assertEqual(result.required, False)
 
@@ -129,8 +128,7 @@ class Testing_Definition(unittest.TestCase):
         fields_dict = parser_result.get_fields()
         components_dict = parser_result.get_components(fields_dict)
 
-        helper = DefinitionHelper()
-        result = helper.generate_component_definition(components_dict, fields_dict)
+        result = DefinitionHelper.generate_component_definition(components_dict, fields_dict)
 
         self.assertEqual(len(result), 3)
         component_QuoteReqGrp = result["QuoteReqGrp"]
@@ -231,9 +229,8 @@ class Testing_Definition(unittest.TestCase):
         components_dict = parser_result.get_components(fields_dict)
         messages_dict = parser_result.get_messages(fields_dict, components_dict)
 
-        helper = DefinitionHelper()
-        result_component_definition = helper.generate_component_definition(components_dict, fields_dict)
-        result_message_definition = helper.generate_message_definition(messages_dict, fields_dict, result_component_definition)
+        result_component_definition = DefinitionHelper.generate_component_definition(components_dict, fields_dict)
+        result_message_definition = DefinitionHelper.generate_message_definition(messages_dict, fields_dict, result_component_definition)
 
         message_Logon = result_message_definition["Logon"]
         self.assertEqual(message_Logon.msg_type, "A")
@@ -291,9 +288,8 @@ class Testing_Definition(unittest.TestCase):
         components_dict = parser_result.get_components(fields_dict)
         trailer = parser_result.get_trailer(fields_dict, components_dict)
 
-        helper = DefinitionHelper()
-        result_component_definition = helper.generate_component_definition(components_dict, fields_dict)
-        result_message_definition = helper.generate_trailer(trailer, fields_dict, result_component_definition)
+        result_component_definition = DefinitionHelper.generate_component_definition(components_dict, fields_dict)
+        result_message_definition = DefinitionHelper.generate_trailer(trailer, fields_dict, result_component_definition)
         self.assertEqual(len(result_message_definition.fields), 1)
 
         trailer_CheckSum = result_message_definition.fields['10']
@@ -377,9 +373,8 @@ class Testing_Definition(unittest.TestCase):
         components_dict = parser_result.get_components(fields_dict)
         header = parser_result.get_header(fields_dict, components_dict)
 
-        helper = DefinitionHelper()
-        result_component_definition = helper.generate_component_definition(components_dict, fields_dict)
-        result_message_definition = helper.generate_header(header, fields_dict, result_component_definition)
+        result_component_definition = DefinitionHelper.generate_component_definition(components_dict, fields_dict)
+        result_message_definition = DefinitionHelper.generate_header(header, fields_dict, result_component_definition)
         self.assertEqual(len(result_message_definition.fields), 6)
 
         trailer_MsgType = result_message_definition.fields['35']
@@ -482,9 +477,8 @@ class Testing_Definition(unittest.TestCase):
         components_dict = parser_result.get_components(fields_dict)
         messages_dict = parser_result.get_messages(fields_dict, components_dict)
 
-        helper = DefinitionHelper()
-        result_component_definition = helper.generate_component_definition(components_dict, fields_dict)
-        result_group_definition = helper.generate_group_definition(components_dict, messages_dict, fields_dict, result_component_definition)
+        result_component_definition = DefinitionHelper.generate_component_definition(components_dict, fields_dict)
+        result_group_definition = DefinitionHelper.generate_group_definition(components_dict, messages_dict, fields_dict, result_component_definition)
         self.assertEqual(len(result_group_definition), 4)
 
         # Add more checks for the group definition

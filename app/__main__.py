@@ -5,8 +5,9 @@ import importlib
 import traceback
 import sys
 from argparse import ArgumentParser, SUPPRESS
-from app.parser import Parser
+from app.parser import *
 from app.schema import *
+from app.definition_helper import *
 
 def main() -> None:
     parser = ArgumentParser(prog='fix-converter-gen', description='FIX codec generator')
@@ -17,6 +18,9 @@ def main() -> None:
 
     args = parser.parse_args()
 
+    if args.generator != 'cpp' or args.generator != 'rust':
+        sys.exit('The possible generator are rust or python')
+
     try:
         module = importlib.import_module(f'app.generation.{args.generator}')
         Generator = getattr(module, 'Generator')
@@ -24,7 +28,7 @@ def main() -> None:
         if len(args.package) != 0:
             schema.package = args.package
         generator = Generator(args.destination)
-        generator.generate(schema)
+        generator.generate(DefinitionHelper.generate_schema_definition_from_schema_parser(schema))
     except Exception as e:
         sys.exit(traceback.format_exc())
         sys.exit(f'error: {e}')

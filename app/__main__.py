@@ -13,12 +13,12 @@ def main() -> None:
     parser = ArgumentParser(prog='fix-converter-gen', description='FIX codec generator')
     parser.add_argument('--schema', help='path to xml schema', required=True)
     parser.add_argument('--destination', help='path to directory where codec will be written', required=True)
-    parser.add_argument('--generator', help='choose generator (available: cpp, rust)', default='cpp', type=str)
+    parser.add_argument('--generator', help='choose generator (available: cpp, rust or cppng)', default='cpp', type=str)
     parser.add_argument('--package', help='override model name property', default='', type=str)
 
     args = parser.parse_args()
 
-    if args.generator != 'cpp' or args.generator != 'rust':
+    if args.generator != 'cpp' or args.generator != 'rust' or args.generator != 'cppng':
         sys.exit('The possible generator are rust or python')
 
     try:

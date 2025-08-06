@@ -483,3 +483,59 @@ class Testing_Definition(unittest.TestCase):
 
         # Add more checks for the group definition
         # print(result_group_definition)
+        
+    def test_generate_group_definition_from_components_nested(self):
+        xml_ref = '\
+<fix major="4" minor="2">\
+    <messages>\
+        <message name="Logon" msgtype="A" msgcat="admin">\
+            <field name="EncryptMethod" required="Y" />\
+            <field name="HeartBtInt" required="Y" />\
+            <field name="Password" required="N" />\
+        </message>\
+    </messages>\
+    <components>\
+        <component name="RiskLimitTypesGrp">\
+            <group name="NoRiskLimitTypes" required="Y">\
+                <field name="RiskLimitType" required="Y" />\
+                <field name="RiskLimitRequestingPartyRole" required="Y" />\
+                <field name="RiskLimitViolationIndicator" required="Y" />\
+            </group>\
+        </component>\
+        <component name="RiskLimitsGrp">\
+            <group name="NoRiskLimits" required="Y">\
+                <component name="RiskLimitTypesGrp" required="Y" />\
+            </group>\
+        </component>\
+    </components>\
+        <fields>\
+            <field number="98" name="EncryptMethod" type="INT">\
+                <value enum="0" description="NONEOTHER"/>\
+            </field>\
+            <field number="108" name="HeartBtInt" type="INT"/>\
+            <field number="554" name="Password" type="STRING"/>\
+            <field number="1530" name="RiskLimitType" type="INT">\
+                <value enum="4" description="LONG_LIMIT"/>\
+                <value enum="5" description="SHORT_LIMIT"/>\
+            </field>\
+            <field number="28776" name="RiskLimitRequestingPartyRole" type="INT">\
+                <value enum="4" description="CLEARING_FIRM"/>\
+                <value enum="22" description="EXCHANGE"/>\
+                <value enum="59" description="EXECUTING_UNIT"/>\
+            </field>\
+            <field number="28778" name="RiskLimitViolationIndicator" type="INT">\
+                <value enum="0" description="NO"/>\
+                <value enum="1" description="YES"/>\
+            </field>\
+            <field number="1529" name="NoRiskLimitTypes" type="NUMINGROUP"/>\
+            <field number="1669" name="NoRiskLimits" type="NUMINGROUP"/>\
+        </fields>\
+</fix>\
+'
+        parser_result = Parser.from_string(xml_ref)
+        fields_dict = parser_result.get_fields()
+        components_dict = parser_result.get_components(fields_dict)
+        messages_dict = parser_result.get_messages(fields_dict, components_dict)
+
+        result_component_definition = DefinitionHelper.generate_component_definition(components_dict, fields_dict)
+        result_group_definition = DefinitionHelper.generate_group_definition(components_dict, messages_dict, fields_dict, result_component_definition)

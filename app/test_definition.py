@@ -1,10 +1,10 @@
 from helpers import UniqueKeysDict
 import unittest
-from definition_helper import *
-from schema import *
-from definition import *
-from helpers import *
-from parser import *
+from app.definition_helper import *
+from app.schema import *
+from app.definition import *
+from app.helpers import *
+from app.parser import *
 
 class Testing_Definition(unittest.TestCase):
 

@@ -1,6 +1,6 @@
 import unittest
-from parser import Parser
-from schema import *
+from app.parser import *
+from app.schema import *
 
 class Testing_Parser(unittest.TestCase):
 
@@ -200,14 +200,14 @@ class Testing_Parser(unittest.TestCase):
         self.assertEqual(len(trailer_result.fields), 1)
 
     def test_TestSchema(self):
-        parser_result = Parser.from_file("../resources/fix_definition.xml")
+        parser_result = Parser.from_file("resources/fix_definition.xml")
         schema_result = parser_result.get_schema()
 
         self.assertEqual(len(schema_result.header.fields), 18)
         self.assertEqual(len(schema_result.trailer.fields), 1)
 
     def test_TestSchemaCash(self):
-        parser_result = Parser.from_file("../resources/FIXLF44_Cash.xml")
+        parser_result = Parser.from_file("resources/FIXLF44_Cash.xml")
         schema_result = parser_result.get_schema()
 
         self.assertEqual(len(schema_result.header.fields), 10)

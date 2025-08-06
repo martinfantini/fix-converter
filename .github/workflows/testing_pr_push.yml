@@ -8,4 +8,4 @@ jobs:
         with:
           submodules: recursive
       - name: Run unit tests
-        run: cd app && python -m unittest 
+        run: python -m unittest discover app

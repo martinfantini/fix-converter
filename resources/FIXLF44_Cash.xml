@@ -450,6 +450,12 @@
     			<field name="EventPx" required="N" />
     		</group>
     	</component>
+    	<component name="SecurityAltIDGrp">
+    		<group name="NoSecurityAltID" required="Y">
+    			<field name="SecurityAltID" required="Y" />
+    			<field name="SecurityAltIDSource" required="Y" />
+    		</group>
+    	</component>
     	<component name="Instrument">
     		<field name="Symbol" required="Y" />
     		<field name="SecurityID" required="N" />
@@ -561,12 +567,6 @@
     	<component name="SRQSRelatedTradeIDGrp">
     		<group name="NoSRQSRelatedTradeIDs" required="Y">
     			<field name="SRQSRelatedTradeID" required="N" />
-    		</group>
-    	</component>
-    	<component name="SecurityAltIDGrp">
-    		<group name="NoSecurityAltID" required="Y">
-    			<field name="SecurityAltID" required="Y" />
-    			<field name="SecurityAltIDSource" required="Y" />
     		</group>
     	</component>
     	<component name="SessionGrp">

@@ -1,15 +1,12 @@
 # Copyright (C) 2025 Roberto Martin Fantini <martin.fantini@gmail.com>
 # This file may be distributed under the terms of the GNU GPLv3 license
 
-from definition import GroupValue
+from app.definition import FieldValue
 from typing import Required
-from schema import MessageComponent
-from definition import FieldDefinition
-from typing import Dict
-from schema import *
-from definition import *
-from helpers import *
 from typing import Dict, Union
+from app.schema import *
+from app.definition import *
+from app.helpers import *
 
 class DefinitionHelper:
 
@@ -28,6 +25,13 @@ class DefinitionHelper:
         "LENGTH": 'int',
         "DATA": 'string',
         "PADDEDSEQNUM": 'int',
+        "AMT": 'string',
+        "VERSION_44": 'string',
+        "PERCENTAGE": 'long',
+        "CURRENCY": 'long',
+        "CHAR": 'char',
+        "MULTIPLEVALUESTRING": 'string',
+        "UTCTIMESTAMP": 'string',
     })
 
     @staticmethod
@@ -198,8 +202,10 @@ class DefinitionHelper:
         start_value = list(fields_in_group.values())[0]
         if isinstance(start_value, FieldValue):
             start_group_field_field_value = start_value
+        elif isinstance(start_value, GroupValue):
+            start_group_field_field_value = start_value
         else:
-            raise Exception(f'Internal Error: field "{start_value.name}" has to be Field')
+            raise Exception(f'Internal Error: field "{start_value.name}" has to be FieldValue or GroupValue')
         fields_in_group_by_number_by_number = UniqueKeysDict()
         for field_element in fields_in_group.values():
             fields_in_group_by_number_by_number[field_parsed[field_element.name].number] = field_element

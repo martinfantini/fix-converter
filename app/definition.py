@@ -26,7 +26,7 @@ class FieldDefinition:
 class GroupDefinition:
     name: str = field(default_factory=str)
     number_element_field: FieldValue = field(default=None)
-    start_group_field: FieldValue = field(default=None)
+    start_group_field: Union[FieldValue, GroupValue] = field(default=None)
     fields: Dict[int, Union[FieldValue, GroupValue]] = field(default_factory=dict)
 
 @dataclass(frozen=True)

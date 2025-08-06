@@ -4,9 +4,9 @@
 from __future__ import annotations
 import xml.etree.ElementTree as ET
 from typing import Optional, Dict, Union, Tuple
-from schema import *
-from xml_helper import *
-from helpers import *
+from app.schema import *
+from app.xml_helper import *
+from app.helpers import *
 
 class Parser:
 

@@ -1,13 +1,11 @@
 # Copyright (C) 2025 Roberto Martin Fantini <martin.fantini@gmail.com>
 # This file may be distributed under the terms of the GNU GPLv3 license
 
-from definition import GroupDefinition
-from definition import ValueDefinition
-from definition import FieldDefinition
-from definition import *
+from app.definition import *
 from abc import ABC, abstractmethod
 
 class GeneratorBase(ABC):
+
     @abstractmethod
     def _generate_impl(self, schema: dict) -> None:
         pass

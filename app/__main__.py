@@ -18,8 +18,8 @@ def main() -> None:
 
     args = parser.parse_args()
 
-    if args.generator != 'cpp' or args.generator != 'rust' or args.generator != 'cppng':
-        sys.exit('The possible generator are rust or python')
+    if args.generator != 'cpp' and args.generator != 'rust' and args.generator != 'cppng':
+        sys.exit('The possible generator are cpp, rust and cppng')
 
     try:
         module = importlib.import_module(f'app.generation.{args.generator}')

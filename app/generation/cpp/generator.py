@@ -1,11 +1,11 @@
 # Copyright (C) 2025 Roberto Martin Fantini <martin.fantini@gmail.com>
 # This file may be distributed under the terms of the GNU GPLv3 license
 
+from app.generator import GeneratorBase
+
 from jinja2 import Environment, FileSystemLoader
 import pathlib
 import os
-
-from app.generator import GeneratorBase
 
 class Generator(GeneratorBase):
     def __init__(self, path: str) -> None:

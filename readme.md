@@ -4,7 +4,7 @@ The idea is generate a python program, which generate the basis classes for fix 
 
 * inspired by https://github.com/ksergey/sbe-code-gen/
 
-# fix definition
+## Fix definition
 
 The possible example of fix definition are in the ```resources``` folder.
 
@@ -21,6 +21,14 @@ component_group:
     - fields
     - component_nested_group
     - fields
+```
+
+## Run generator
+
+To run the fix-generator:
+
+```bash
+python3.13 -m app --schema resources/FIXLF44_Cash.xml --generator cpp --destination result
 ```
 
 # TODO

@@ -1,3 +1,6 @@
+# Copyright (C) 2025 Roberto Martin Fantini <martin.fantini@gmail.com>
+# This file may be distributed under the terms of the GNU GPLv3 license
+
 import unittest
 from app.parser import *
 from app.schema import *

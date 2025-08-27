@@ -24,9 +24,10 @@ def main() -> None:
     try:
         module = importlib.import_module(f'app.generation.{args.generator}')
         Generator = getattr(module, 'Generator')
-        schema = Parser.from_file(args.schema).get_schema()
+        package_name = None
         if len(args.package) != 0:
-            schema.package = args.package
+            package_name = args.package
+        schema = Parser.from_file(args.schema).get_schema(package_name)
         generator = Generator(args.destination)
         generator.generate(DefinitionHelper.generate_schema_definition_from_schema_parser(schema))
     except Exception as e:

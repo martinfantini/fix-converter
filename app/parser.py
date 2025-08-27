@@ -270,7 +270,7 @@ class Parser:
     #or 
     #
     #    <fix major="4" minor="2">
-    def get_schema(self):
+    def get_schema(self, package: str | None ):
         major_version_int = 0
         minor_version_int = 0
         if self.root.tag == "fix":
@@ -280,7 +280,6 @@ class Parser:
             vrsn_str = attr(self.root, 'version', "")
         else:
             for child_fix_definition in self.root.findall("fix"):
-                print("HERE")
                 major_version_int = attr(child_fix_definition, 'major')
                 minor_version_int = attr(child_fix_definition, 'minor')
                 cpyrght_str = attr(child_fix_definition, 'copyright')
@@ -299,6 +298,7 @@ class Parser:
             fix_major_version = major_version_int,
             fix_minor_version = minor_version_int,
             copyright = cpyrght_str,
+            package = package,
             version = vrsn_str,
             fields = fields_dict,
             components = components_dict,

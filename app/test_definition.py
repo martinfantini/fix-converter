@@ -401,7 +401,7 @@ class Testing_Definition(unittest.TestCase):
     <components>\
         <component name="LegFillsGrp">\
             <group name="LegNoFills">\
-                <field name="LegFillExecID"/>\
+                <field name="LegFillExecID" required="Y" />\
                 <field name="LegFillPx"/>\
             </group>\
         </component>\

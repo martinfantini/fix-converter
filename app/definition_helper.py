@@ -200,6 +200,8 @@ class DefinitionHelper:
         number_element_field_field_value = DefinitionHelper.get_field_value(message_group.name, message_group.required, field_parsed)
         fields_in_group = DefinitionHelper.generate_field_group_values_from_field_component_group(message_group.field_by_name, field_parsed, component_definition)
         start_value = list(fields_in_group.values())[0]
+        if start_value.required == False:
+            raise Exception(f'Start field "{start_value.name}" has to be required field')
         if isinstance(start_value, FieldValue):
             start_group_field_field_value = start_value
         elif isinstance(start_value, GroupValue):

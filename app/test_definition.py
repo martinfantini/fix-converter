@@ -295,7 +295,7 @@ class Testing_Definition(unittest.TestCase):
         result_message_definition = DefinitionHelper.generate_trailer(trailer, fields_dict, result_component_definition)
         self.assertEqual(len(result_message_definition.fields), 1)
 
-        trailer_CheckSum = result_message_definition.fields['10']
+        trailer_CheckSum = result_message_definition.fields[10]
         self.assertEqual(trailer_CheckSum.name, "CheckSum")
         self.assertEqual(trailer_CheckSum.required, True)
 
@@ -380,11 +380,11 @@ class Testing_Definition(unittest.TestCase):
         result_message_definition = DefinitionHelper.generate_header(header, fields_dict, result_component_definition)
         self.assertEqual(len(result_message_definition.fields), 6)
 
-        trailer_MsgType = result_message_definition.fields['35']
+        trailer_MsgType = result_message_definition.fields[35]
         self.assertEqual(trailer_MsgType.name, "MsgType")
         self.assertEqual(trailer_MsgType.required, True)
 
-        trailer_BeginString = result_message_definition.fields['8']
+        trailer_BeginString = result_message_definition.fields[8]
         self.assertEqual(trailer_BeginString.name, "BeginString")
         self.assertEqual(trailer_BeginString.required, False)
 

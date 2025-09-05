@@ -29,7 +29,7 @@ class Testing_Parser(unittest.TestCase):
 
         field_FeeBilling = field_types_dict["FeeBilling"]
         self.assertEqual(field_FeeBilling.name, "FeeBilling")
-        self.assertEqual(field_FeeBilling.number, '9706')
+        self.assertEqual(field_FeeBilling.number, 9706)
         self.assertEqual(field_FeeBilling.field_type, "CHAR")
         self.assertEqual(len(field_FeeBilling.value_by_description), 5)
 
@@ -39,7 +39,7 @@ class Testing_Parser(unittest.TestCase):
 
         field_OmnibusAccount = field_types_dict["OmnibusAccount"]
         self.assertEqual(field_OmnibusAccount.name, "OmnibusAccount")
-        self.assertEqual(field_OmnibusAccount.number, '9701')
+        self.assertEqual(field_OmnibusAccount.number, 9701)
         self.assertEqual(field_OmnibusAccount.field_type, "STRING")
         self.assertEqual(len(field_OmnibusAccount.value_by_description), 0)
 

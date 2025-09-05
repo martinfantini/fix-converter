@@ -40,7 +40,7 @@ class Parser:
     def parse_field(self, node: ET.Element) -> Field:
         name_str = attr(node, 'name')
         field_type_str = attr(node, 'type')
-        number_int = attr(node, 'number')
+        number_int = attr(node, 'number', None, int)
         if number_int == None:
             raise Exception(f'Malformed XML: The field "{name_str}" has no number "{number_int}"')
         value_by_description_dict = UniqueKeysDict()
@@ -274,14 +274,14 @@ class Parser:
         major_version_int = 0
         minor_version_int = 0
         if self.root.tag == "fix":
-            major_version_int = attr(self.root, 'major')
-            minor_version_int = attr(self.root, 'minor')
+            major_version_int = attr(self.root, 'major', None, int)
+            minor_version_int = attr(self.root, 'minor', None, int)
             cpyrght_str = attr(self.root, 'copyright', "")
             vrsn_str = attr(self.root, 'version', "")
         else:
             for child_fix_definition in self.root.findall("fix"):
-                major_version_int = attr(child_fix_definition, 'major')
-                minor_version_int = attr(child_fix_definition, 'minor')
+                major_version_int = attr(child_fix_definition, 'major', None, int)
+                minor_version_int = attr(child_fix_definition, 'minor', None, int)
                 cpyrght_str = attr(child_fix_definition, 'copyright')
                 vrsn_str = attr(child_fix_definition, 'version')
 

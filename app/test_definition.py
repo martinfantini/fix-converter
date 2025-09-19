@@ -161,6 +161,17 @@ class Testing_Definition(unittest.TestCase):
     def test_get_message_definition(self):
         xml_ref = '\
 <fix major="4" minor="2">\
+    <trailer>\
+        <field name="CheckSum" required="Y"/>\
+    </trailer>\
+    <header>\
+        <field name="BeginString"/>\
+        <field name="BodyLength"/>\
+        <field name="MsgType" required="Y"/>\
+        <field name="SenderCompID"/>\
+        <field name="TargetCompID"/>\
+        <field name="MsgSeqNum" required="Y"/>\
+    </header>\
     <messages>\
         <message name="EmptyMessage" msgtype="empty"/>\
         <message name="Logon" msgtype="A">\
@@ -193,6 +204,37 @@ class Testing_Definition(unittest.TestCase):
         </component>\
     </components>\
     <fields>\
+        <field number="10" name="CheckSum" type="INT" />\
+        <field number="8" name="BeginString" type="STRING"/>\
+        <field number="9" name="BodyLength" type="LENGTH" />\
+        <field number="35" name="MsgType" type="STRING">\
+            <value enum="0" description="HEARTBEAT"/>\
+            <value enum="1" description="TEST_REQUEST"/>\
+            <value enum="2" description="RESEND_REQUEST"/>\
+            <value enum="3" description="SESSION_REJECT"/>\
+            <value enum="4" description="SEQUENCE_RESET"/>\
+            <value enum="5" description="LOGOUT"/>\
+            <value enum="8" description="EXECUTION_REPORT"/>\
+            <value enum="9" description="ORDER_CANCEL_REJECT"/>\
+            <value enum="A" description="LOGON"/>\
+            <value enum="D" description="NEW_ORDER_SINGLE"/>\
+            <value enum="AB" description="NEW_ORDER_MULTILEG"/>\
+            <value enum="F" description="ORDER_CANCEL_REQUEST"/>\
+            <value enum="G" description="ORDER_CANCEL_REPLACE_REQUEST"/>\
+            <value enum="AC" description="MULTILEG_ORDER_CANCEL_REPLACE_REQUEST"/>\
+            <value enum="H" description="ORDER_STATUS_REQUEST"/>\
+            <value enum="R" description="QUOTE_REQUEST"/>\
+            <value enum="Z" description="QUOTE_CANCEL"/>\
+            <value enum="b" description="QUOTE_ACKNOWLEDGEMENT"/>\
+            <value enum="c" description="SECURITY_DEFINITION_REQUEST"/>\
+            <value enum="d" description="SECURITY_DEFINITION"/>\
+            <value enum="i" description="MASS_QUOTE"/>\
+            <value enum="j" description="BUSINESS_REJECT"/>\
+            <value enum="s" description="NEW_ORDER_CROSS"/>\
+        </field>\
+        <field number="49" name="SenderCompID" type="STRING"/>\
+        <field number="56" name="TargetCompID" type="STRING"/>\
+        <field number="34" name="MsgSeqNum" type="PADDEDSEQNUM"/>\
         <field number="95" name="RawDataLength" type="LENGTH"/>\
         <field number="96" name="RawData" type="DATA"/>\
         <field number="98" name="EncryptMethod" type="INT">\
@@ -231,21 +273,23 @@ class Testing_Definition(unittest.TestCase):
         fields_dict = parser_result.get_fields()
         components_dict = parser_result.get_components(fields_dict)
         messages_dict = parser_result.get_messages(fields_dict, components_dict)
+        trailer = parser_result.get_trailer(fields_dict, components_dict)
+        header = parser_result.get_header(fields_dict, components_dict)
 
         result_component_definition = DefinitionHelper.generate_component_definition(components_dict, fields_dict)
-        result_message_definition = DefinitionHelper.generate_message_definition(messages_dict, fields_dict, result_component_definition)
+        result_message_definition = DefinitionHelper.generate_message_definition(messages_dict, fields_dict, result_component_definition, header, trailer)
 
         message_Logon = result_message_definition["Logon"]
         self.assertEqual(message_Logon.msg_type, "A")
-        self.assertEqual(len(message_Logon.fields), 4)
+        self.assertEqual(len(message_Logon.fields), 11)
 
         message_MultilegOrderCancelReplaceRequest = result_message_definition["MultilegOrderCancelReplaceRequest"]
         self.assertEqual(message_MultilegOrderCancelReplaceRequest.msg_type, "AC")
-        self.assertEqual(len(message_MultilegOrderCancelReplaceRequest.fields), 5)
+        self.assertEqual(len(message_MultilegOrderCancelReplaceRequest.fields), 12)
 
         message_OrderSingle = result_message_definition["OrderSingle"]
         self.assertEqual(message_OrderSingle.msg_type, "D")
-        self.assertEqual(len(message_OrderSingle.fields), 2)
+        self.assertEqual(len(message_OrderSingle.fields), 9)
 
     def test_generate_trailer(self):
         xml_ref = '\

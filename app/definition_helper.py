@@ -140,16 +140,20 @@ class DefinitionHelper:
         return components_dict
 
     @staticmethod
-    def generate_message_definition(parsed_messages: Dict[str, Message], field_parsed: Dict[str, Field], component_definition: Dict[str, ComponentValue]) -> Dict[str, MessageDefinition]:
+    def generate_message_definition(parsed_messages: Dict[str, Message], field_parsed: Dict[str, Field], component_definition: Dict[str, ComponentValue], header: Header, trailer: Trailer) -> Dict[str, MessageDefinition]:
         messages_dict = UniqueKeysDict()
         for parsed_message in parsed_messages.values():
-            message_definition_result = DefinitionHelper.get_message_definition(parsed_message, field_parsed, component_definition)
+            message_definition_result = DefinitionHelper.get_message_definition(parsed_message, field_parsed, component_definition, header, trailer)
             messages_dict[message_definition_result.name] = message_definition_result
         return messages_dict
 
     @staticmethod
-    def get_message_definition(parsed_message: Message, field_parsed: Dict[str, Field], component_definition: Dict[str, ComponentValue]) -> MessageDefinition:
+    def get_message_definition(parsed_message: Message, field_parsed: Dict[str, Field], component_definition: Dict[str, ComponentValue], header: Header, trailer: Trailer) -> MessageDefinition:
         fields_dict = DefinitionHelper.generate_field_group_values_from_field_component_group(parsed_message.fields, field_parsed, component_definition)
+        fields_dict_header = DefinitionHelper.generate_field_group_values_from_field_component_group(header.fields, field_parsed, component_definition)
+        fields_dict.update(fields_dict_header)
+        fields_dict_trailer = DefinitionHelper.generate_field_group_values_from_field_component_group(trailer.fields, field_parsed, component_definition)
+        fields_dict.update(fields_dict_trailer)
         return MessageDefinition(
             name = parsed_message.name,
             msg_type = parsed_message.msg_type,
@@ -256,9 +260,9 @@ class DefinitionHelper:
         fields_def = DefinitionHelper.generate_fields_definition(schema_parser.fields)
         component_def = DefinitionHelper.generate_component_definition(schema_parser.components, schema_parser.fields)
         groups_def = DefinitionHelper.generate_group_definition(schema_parser.components, schema_parser.message, schema_parser.fields, component_def)
-        message_def = DefinitionHelper.generate_message_definition(schema_parser.message, schema_parser.fields, component_def)
         header_def = DefinitionHelper.generate_header(schema_parser.header, schema_parser.fields, component_def)
         trailer_def = DefinitionHelper.generate_trailer(schema_parser.trailer, schema_parser.fields, component_def)
+        message_def = DefinitionHelper.generate_message_definition(schema_parser.message, schema_parser.fields, component_def, schema_parser.header, schema_parser.trailer)
         return SchemaDefinition(
             fields = fields_def,
             groups = groups_def,

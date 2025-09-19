@@ -74,9 +74,19 @@ class GeneratorBase(ABC):
             'name' : value_definition.description,
             'value' : value_definition.value
         }
-        
+
     @staticmethod
-    def generate_fields_list(fields_definition_dict: Dict[int, Union[FieldValue, GroupValue]], fields_definition: Dict[str, FieldDefinition]):
+    def generate_fields_list_by_parsed_order(fields_definition_dict: Dict[int, Union[FieldValue, GroupValue]], fields_definition: Dict[str, FieldDefinition]):
+        fields_list  = []
+        for field in fields_definition_dict:
+            if isinstance(field[1], GroupValue):
+                fields_list.append(GeneratorBase.make_group_definition_in_group(field[1], field[0], fields_definition))
+            elif isinstance(field[1], FieldValue):
+                fields_list.append(GeneratorBase.make_field_definition_in_group(field[1], field[0], fields_definition))
+        return fields_list
+
+    @staticmethod
+    def generate_fields_list_by_id(fields_definition_dict: Dict[int, Union[FieldValue, GroupValue]], fields_definition: Dict[str, FieldDefinition]):
         fields_list  = []
         sorted_dictionary = sorted(fields_definition_dict.items(), key=lambda x: str(x[0]))
         for field in sorted_dictionary:
@@ -102,7 +112,8 @@ class GeneratorBase(ABC):
             'number_of_elements_id': str(number_of_elements_field.number),
             'start_group_field': start_group_field.name,
             'start_group_field_id': str(start_group_field.number),
-            'fields': GeneratorBase.generate_fields_list(group_definition.fields, fields_definition),
+            'fields_by_id': GeneratorBase.generate_fields_list_by_id(group_definition.fields, fields_definition),
+            'fields_by_order': GeneratorBase.generate_fields_list_by_parsed_order(group_definition.fields, fields_definition),
         }
 
     @staticmethod
@@ -133,14 +144,16 @@ class GeneratorBase(ABC):
     def make_trailer_definition(trailer: TrailerDefinition, fields_definition: Dict[str, FieldDefinition]) -> dict:
         return {
             'token': 'trailer',
-            'fields': GeneratorBase.generate_fields_list(trailer.fields, fields_definition),
+            'fields_by_id': GeneratorBase.generate_fields_list_by_id(trailer.fields, fields_definition),
+            'fields_by_order': GeneratorBase.generate_fields_list_by_parsed_order(trailer.fields, fields_definition),
         }
 
     @staticmethod
     def make_header_definition(header: HeaderDefinition, fields_definition: Dict[str, FieldDefinition]) -> dict:
         return {
             'token': 'header',
-            'fields': GeneratorBase.generate_fields_list(header.fields, fields_definition),
+            'fields_by_id': GeneratorBase.generate_fields_list_by_id(header.fields, fields_definition),
+            'fields_by_order': GeneratorBase.generate_fields_list_by_parsed_order(header.fields, fields_definition),
         }
 
     @staticmethod
@@ -149,5 +162,6 @@ class GeneratorBase(ABC):
             'token': 'message',
             'name': message_definition.name,
             'type': message_definition.msg_type,
-            'fields': GeneratorBase.generate_fields_list(message_definition.fields, fields_definition),
+            'fields_by_id': GeneratorBase.generate_fields_list_by_id(message_definition.fields, fields_definition),
+            'fields_by_order': GeneratorBase.generate_fields_list_by_parsed_order(message_definition.fields, fields_definition),
         }

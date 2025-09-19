@@ -149,11 +149,9 @@ class DefinitionHelper:
 
     @staticmethod
     def get_message_definition(parsed_message: Message, field_parsed: Dict[str, Field], component_definition: Dict[str, ComponentValue], header: Header, trailer: Trailer) -> MessageDefinition:
-        fields_dict = DefinitionHelper.generate_field_group_values_from_field_component_group(parsed_message.fields, field_parsed, component_definition)
-        fields_dict_header = DefinitionHelper.generate_field_group_values_from_field_component_group(header.fields, field_parsed, component_definition)
-        fields_dict.update(fields_dict_header)
-        fields_dict_trailer = DefinitionHelper.generate_field_group_values_from_field_component_group(trailer.fields, field_parsed, component_definition)
-        fields_dict.update(fields_dict_trailer)
+        fields_dict = DefinitionHelper.generate_field_group_values_from_field_component_group(header.fields, field_parsed, component_definition)
+        fields_dict.update(DefinitionHelper.generate_field_group_values_from_field_component_group(parsed_message.fields, field_parsed, component_definition))
+        fields_dict.update(DefinitionHelper.generate_field_group_values_from_field_component_group(trailer.fields, field_parsed, component_definition))
         return MessageDefinition(
             name = parsed_message.name,
             msg_type = parsed_message.msg_type,

@@ -28,11 +28,20 @@ class GroupDefinition:
     number_element_field: FieldValue = field(default=None)
     start_group_field: Union[FieldValue, GroupValue] = field(default=None)
     fields: Dict[int, Union[FieldValue, GroupValue]] = field(default_factory=dict)
+    fields_by_tree: TreeDefinition = field(default=None)
 
-@dataclass(frozen=True)
+@dataclass
 class FieldValue:
     name: str = field(default_factory=str)
     required: bool = field(default=False)
+    is_begin_message: bool = field(default=False)
+    is_end_message: bool = field(default=False)
+
+    def set_begin_message(self):
+        self.is_begin_message = True
+
+    def set_end_message(self):
+        self.is_end_message = True
 
 @dataclass(frozen=True)
 class GroupValue:
@@ -51,6 +60,7 @@ class MessageDefinition:
     msg_type: str = field(default_factory=str)
     msg_category: Optional[str] = field(default=None)
     fields: Dict[int, Union[FieldValue, GroupValue]] = field(default_factory=dict)
+    fields_by_tree: TreeDefinition = field(default=None)
 
 @dataclass(frozen=True)
 class HeaderDefinition:
@@ -71,3 +81,20 @@ class SchemaDefinition:
     fix_major_version: int = field(default=0)
     package: Optional[str] = field(default=None)
     version: Optional[str] = field(default=None)
+
+class TreeDefinition:
+    def __init__(self):
+        self.value = None
+        self.tree_ids = dict()
+        self.depth = 1
+
+    def find(self, id_field: str) -> bool:
+        if id_field in self.tree_ids:
+            return True
+        return False
+
+    def add_value(self, value: Union[FieldValue, GroupValue]):
+        self.value = value
+
+    def add_sub_node(self, id_field: str, node):
+        self.tree_ids[id_field] = node

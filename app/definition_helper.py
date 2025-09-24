@@ -150,13 +150,25 @@ class DefinitionHelper:
     @staticmethod
     def get_message_definition(parsed_message: Message, field_parsed: Dict[str, Field], component_definition: Dict[str, ComponentValue], header: Header, trailer: Trailer) -> MessageDefinition:
         fields_dict = DefinitionHelper.generate_field_group_values_from_field_component_group(header.fields, field_parsed, component_definition)
+        keys = list(fields_dict)
+        fields_dict[keys[0]].set_begin_message()
         fields_dict.update(DefinitionHelper.generate_field_group_values_from_field_component_group(parsed_message.fields, field_parsed, component_definition))
         fields_dict.update(DefinitionHelper.generate_field_group_values_from_field_component_group(trailer.fields, field_parsed, component_definition))
+        keys = list(fields_dict)
+        fields_dict[keys[-1]].set_end_message()
+
+        sorted_dictionary = sorted(fields_dict.items(), key=lambda x: str(x[0]))
+        root_node = TreeDefinition()
+        for field in sorted_dictionary:
+            DefinitionHelper.generate_tree_definition(str(field[0]), root_node, field[1])
+
         return MessageDefinition(
             name = parsed_message.name,
             msg_type = parsed_message.msg_type,
             msg_category = parsed_message.msg_category,
-            fields = fields_dict)
+            fields = fields_dict,
+            fields_by_tree= root_node,
+        )
 
     @staticmethod
     def generate_header(header: Header, field_parsed: Dict[str, Field], component_definition: Dict[str, ComponentValue]) -> HeaderDefinition:
@@ -213,11 +225,19 @@ class DefinitionHelper:
         fields_in_group_by_number_by_number = UniqueKeysDict()
         for field_element in fields_in_group.values():
             fields_in_group_by_number_by_number[field_parsed[field_element.name].number] = field_element
-            result_group_definition = GroupDefinition(
-                    name = message_group.name,
-                    number_element_field = number_element_field_field_value,
-                    start_group_field = start_group_field_field_value,
-                    fields = fields_in_group_by_number_by_number)
+
+        sorted_dictionary = sorted(fields_in_group_by_number_by_number.items(), key=lambda x: str(x[0]))
+        root_node = TreeDefinition()
+        for field in sorted_dictionary:
+            DefinitionHelper.generate_tree_definition(str(field[0]), root_node, field[1])
+
+        result_group_definition = GroupDefinition(
+                name = message_group.name,
+                number_element_field = number_element_field_field_value,
+                start_group_field = start_group_field_field_value,
+                fields = fields_in_group_by_number_by_number,
+                fields_by_tree= root_node,
+        )
         return result_group_definition
 
     @staticmethod
@@ -271,3 +291,34 @@ class DefinitionHelper:
             fix_major_version = schema_parser.fix_major_version,
             package = schema_parser.package,
             version = schema_parser.version )
+
+    @staticmethod
+    def node_value(value: Union[FieldValue, GroupValue], depth: int) -> TreeDefinition:
+        result_node = TreeDefinition()
+        result_node.tree_ids = None
+        result_node.depth = depth
+        result_node.value = value
+        return result_node
+
+    @staticmethod
+    def node_eq(value: Union[FieldValue, GroupValue], depth: int) -> TreeDefinition:
+        result_node = TreeDefinition()
+        result_node.depth = depth
+        result_node.add_sub_node('=', DefinitionHelper.node_value(value, depth+1))
+        return result_node
+
+    @staticmethod
+    def generate_tree_definition(field_id: str, current_node: TreeDefinition, value: Union[FieldValue, GroupValue]):
+        if len(field_id) == 1:
+            if current_node.find(field_id):
+                raise Exception(f'Internal Error: already defined value')
+            current_node.add_sub_node(field_id, DefinitionHelper.node_eq(value, current_node.depth+1))
+        else:
+            current_value = field_id[0]
+            if current_node.find(current_value):
+                new_node = current_node.tree_ids[current_value]
+            else:
+                new_node = TreeDefinition()
+                new_node.depth = current_node.depth+1
+                current_node.add_sub_node(current_value, new_node)
+            DefinitionHelper.generate_tree_definition(field_id[1:], new_node, value)

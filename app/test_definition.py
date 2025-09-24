@@ -282,6 +282,9 @@ class Testing_Definition(unittest.TestCase):
         message_Logon = result_message_definition["Logon"]
         self.assertEqual(message_Logon.msg_type, "A")
         self.assertEqual(len(message_Logon.fields), 11)
+        keys = list(message_Logon.fields)
+        self.assertEqual(message_Logon.fields[keys[0]].is_begin_message, True)
+        self.assertEqual(message_Logon.fields[keys[-1]].is_end_message, True)
 
         message_MultilegOrderCancelReplaceRequest = result_message_definition["MultilegOrderCancelReplaceRequest"]
         self.assertEqual(message_MultilegOrderCancelReplaceRequest.msg_type, "AC")
